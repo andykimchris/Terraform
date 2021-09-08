@@ -4,25 +4,23 @@ variable "allow_all" {
   type        = string
 }
 
-variable "subnet_prefix" {
-  description = "Allows traffic from any server"
-}
+
 
 provider "aws" {
-  region     = "us-east-1"
-  access_key = ""
-  secret_key = ""
+  region = "eu-north-1"
+  access_key = "my-access-key-id"
+  secret_key = "my-secret-access-key"
 }
 
-resource "aws_instance" "ubuntu-server" {
-  ami           = "ami-09e67e426f25ce0d7"
-  instance_type = "t2.micro"
+resource "aws_instance" "ubuntu-server-a" {
+  ami = "ami-0ff338189efb7ed37"
+  instance_type = "t3.micro"
 
-  tags = {
+   tags = {
     Name = "ubuntu-server-a"
   }
+  
 }
-
 resource "aws_vpc" "first-vpc" {
   cidr_block = "10.0.0.0/16"
 
@@ -33,39 +31,46 @@ resource "aws_vpc" "first-vpc" {
 
 resource "aws_subnet" "subnet-1" {
   vpc_id            = aws_vpc.first-vpc.id
-  cidr_block        = var.subnet_prefix[0].cidr_block
-  availability_zone = "us-east-1a"
-
+  cidr_block        = "10.0.1.0/24"
+#   availability_zone = "us-north-1a"
+ 
   tags = {
-    Name = var.subnet_prefix[0].name
+    Name = "public-subnet-3a"
   }
 }
 
-resource "aws_internet_gateway" "gw" {
+resource "aws_internet_gateway" "igw-prod" {
   vpc_id = aws_vpc.first-vpc.id
 }
 
-resource "aws_route_table" "prod-route-table-a" {
+resource "aws_route_table" "rt-prod" {
   vpc_id = aws_vpc.first-vpc.id
 
-  route {
-    cidr_block = var.allow_all
-    gateway_id = aws_internet_gateway.gw.id
-  }
+    route {
+        cidr_block = "0.0.0.0/0"
+        gateway_id = aws_internet_gateway.igw-prod.id
+    }
 
-  route {
-    ipv6_cidr_block = "::/0"
-    gateway_id      = aws_internet_gateway.gw.id
-  }
+      route {
+        ipv6_cidr_block = "::/0"
+        gateway_id      = aws_internet_gateway.igw-prod.id
+    }
+}
 
+resource "aws_subnet" "subnet-2" {
+  vpc_id            = aws_vpc.first-vpc.id
+  cidr_block        = "10.0.2.0/24"
+  availability_zone = "eu-north-1c"
+ 
   tags = {
-    Name = "Prod route table"
+    Name = "public-subnet-3b"
   }
 }
+
 
 resource "aws_route_table_association" "a" {
   subnet_id      = aws_subnet.subnet-1.id
-  route_table_id = aws_route_table.prod-route-table-a.id
+  route_table_id = aws_route_table.rt-prod.id
 }
 
 resource "aws_security_group" "allow_web" {
@@ -115,23 +120,22 @@ resource "aws_security_group" "allow_web" {
 
 resource "aws_network_interface" "multi-ip" {
   subnet_id       = aws_subnet.subnet-1.id
-  private_ips     = ["10.0.1.50"]
+  private_ips     = ["10.0.1.40", "10.0.1.50"]
   security_groups = [aws_security_group.allow_web.id]
-
 }
 
 resource "aws_eip" "one" {
   vpc                       = true
   network_interface         = aws_network_interface.multi-ip.id
-  associate_with_private_ip = "10.0.1.50"
-  depends_on                = [aws_internet_gateway.gw]
+  associate_with_private_ip = "10.0.1.40"
+  depends_on                = [aws_internet_gateway.igw-prod]
 }
 
 resource "aws_instance" "ubuntu-server-with-vpc" {
-  ami               = "ami-09e67e426f25ce0d7"
-  instance_type     = "t2.micro"
-  availability_zone = "us-east-1a"
-  key_name          = "terraform-access"
+  ami = "ami-0ff338189efb7ed37"
+  instance_type     = "t3.micro"
+  availability_zone = "eu-north-1b"
+  key_name          = "stockholm-key"
 
   network_interface {
     network_interface_id = aws_network_interface.multi-ip.id
@@ -147,10 +151,9 @@ resource "aws_instance" "ubuntu-server-with-vpc" {
               EOF
 
   tags = {
-    Name = "ubuntu-server-with-vpc"
+    Name = "ubuntu-server-b"
   }
 }
-
 
 # Outputs
 output "server_public_ip" {
@@ -158,5 +161,6 @@ output "server_public_ip" {
 }
 
 output "instance_2_server_private_ip" {
+    
   value = aws_instance.ubuntu-server-with-vpc.credit_specification
 }
