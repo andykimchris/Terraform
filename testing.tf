@@ -7,7 +7,7 @@ variable "allow_all" {
 
 
 provider "aws" {
-  region = "eu-north-1"
+  region = "me-south-1"
   access_key = "my-access-key-id"
   secret_key = "my-secret-access-key"
 }
@@ -32,7 +32,7 @@ resource "aws_vpc" "first-vpc" {
 resource "aws_subnet" "subnet-1" {
   vpc_id            = aws_vpc.first-vpc.id
   cidr_block        = "10.0.1.0/24"
-#   availability_zone = "us-north-1a"
+#   availability_zone = "me-south-1a"
  
   tags = {
     Name = "public-subnet-3a"
@@ -60,7 +60,7 @@ resource "aws_route_table" "rt-prod" {
 resource "aws_subnet" "subnet-2" {
   vpc_id            = aws_vpc.first-vpc.id
   cidr_block        = "10.0.2.0/24"
-  availability_zone = "eu-north-1c"
+  availability_zone = "me-south-1c"
  
   tags = {
     Name = "public-subnet-3b"
@@ -134,8 +134,8 @@ resource "aws_eip" "one" {
 resource "aws_instance" "ubuntu-server-with-vpc" {
   ami = "ami-0ff338189efb7ed37"
   instance_type     = "t3.micro"
-  availability_zone = "eu-north-1b"
-  key_name          = "stockholm-key"
+  availability_zone = "me-south-1b"
+  key_name          = "bahrain-key"
 
   network_interface {
     network_interface_id = aws_network_interface.multi-ip.id
