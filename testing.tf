@@ -22,7 +22,7 @@ resource "aws_instance" "ubuntu-server-a" {
   
 }
 resource "aws_vpc" "first-vpc" {
-  cidr_block = "10.0.0.0/16"
+  cidr_block = "10.0.0.0/24"
 
   tags = {
     Name = "production-vpc"
@@ -31,13 +31,26 @@ resource "aws_vpc" "first-vpc" {
 
 resource "aws_subnet" "subnet-1" {
   vpc_id            = aws_vpc.first-vpc.id
-  cidr_block        = "10.0.1.0/24"
+  cidr_block        = "10.0.1.0/28"
 #   availability_zone = "me-south-1a"
  
   tags = {
     Name = "public-subnet-3a"
   }
 }
+
+resource "aws_subnet" "subnet-3" {
+  vpc_id            = aws_vpc.first-vpc.id
+  cidr_block        = "10.0.3.0/28"
+  availability_zone = "me-south-1c"
+ 
+  tags = {
+    Name = "public-subnet-3b"
+  }
+}
+
+
+
 
 resource "aws_internet_gateway" "igw-prod" {
   vpc_id = aws_vpc.first-vpc.id
@@ -57,15 +70,6 @@ resource "aws_route_table" "rt-prod" {
     }
 }
 
-resource "aws_subnet" "subnet-2" {
-  vpc_id            = aws_vpc.first-vpc.id
-  cidr_block        = "10.0.2.0/24"
-  availability_zone = "me-south-1c"
- 
-  tags = {
-    Name = "public-subnet-3b"
-  }
-}
 
 
 resource "aws_route_table_association" "a" {
