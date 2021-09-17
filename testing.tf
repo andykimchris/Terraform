@@ -49,8 +49,15 @@ resource "aws_subnet" "subnet-3" {
   }
 }
 
-
-
+resource "aws_subnet" "subnet-2" {
+  vpc_id            = aws_vpc.first-vpc.id
+  cidr_block        = "10.0.2.0/28"
+  availability_zone = "me-south-1c"
+ 
+  tags = {
+    Name = "private-subnet-3c"
+  }
+}
 
 resource "aws_internet_gateway" "igw-prod" {
   vpc_id = aws_vpc.first-vpc.id
