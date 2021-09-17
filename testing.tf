@@ -1,6 +1,6 @@
 variable "allow_all" {
   description = "Allows traffic from any server"
-  default     = "0.0.0.0/0"
+  default     = "197.237.151.233/32"
   type        = string
 }
 
